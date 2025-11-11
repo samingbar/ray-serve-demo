@@ -60,6 +60,17 @@ A modern, production-ready template for building Temporal applications using [Te
    uv run -m src.workflows.http.http_workflow
    ```
 
+### Ray Serve Inference Example
+
+Combine Temporal with Ray Serve to orchestrate batch inference via HTTP:
+
+1. Start Temporal server: `temporal server start-dev`
+2. Start a Ray Serve app (see docs/ray-serve-temporal.md)
+3. Start the worker: `uv run -m src.workflows.serve_inference.worker`
+4. Execute the workflow: `uv run -m src.workflows.serve_inference.serve_inference_workflow`
+
+See docs/ray-serve-temporal.md for details.
+
 ### Next Steps
 
 - Check out some [example prompts](./docs/example-prompts.md) to generate Temporal Workflows using your favorite tool.

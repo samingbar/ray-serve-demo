@@ -8,6 +8,9 @@ dependencies = [
     "temporalio==1.18.2",
     "aiohttp==3.13.2",
     "pydantic==2.12.4",
+    "ray[serve]==2.51.1",
+    "fastapi[standard]>=0.115",
+    "starlette<0.50",
 ]
 
 [dependency-groups]
@@ -92,6 +95,11 @@ cmd = "pre-commit run --all-files"
 [tool.poe.tasks.pre-commit-update]
 help = "Update pre-commit hook versions."
 cmd = "pre-commit autoupdate"
+
+[tool.poe.tasks.infer]
+help = "Run the sample batch inference starter."
+cmd = "python -m src.app.inference_starter"
+env = { PYTHONPATH = "." }
 
 [tool.bandit]
 exclude_dirs = ["tests", "*_tests.py"]
