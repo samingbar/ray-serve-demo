@@ -86,6 +86,14 @@ class InferenceResponse(BaseModel):
     Either ``output`` will be populated with parsed JSON on success, or ``error``
     will contain a human-readable message on failure (including transport errors).
     """
+    status_code: int
+    """HTTP status code returned by the endpoint."""
+
+    output: dict[str, Any] | None = None
+    """Parsed JSON output from the model, if available."""
+
+    error: str | None = None
+    """Error message, if the request failed or response was invalid."""
 
 __all__ = [
     "BatchInferenceItem",
@@ -95,11 +103,4 @@ __all__ = [
     "InferenceResponse",
 ]
 
-    status_code: int
-    """HTTP status code returned by the endpoint."""
 
-    output: dict[str, Any] | None = None
-    """Parsed JSON output from the model, if available."""
-
-    error: str | None = None
-    """Error message, if the request failed or response was invalid."""
