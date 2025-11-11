@@ -1,8 +1,9 @@
 """Workflow that orchestrates batch inference via Ray Serve activities.
 
-This workflow demonstrates combining Temporal with Ray Serve by delegating
-HTTP inference calls to activities and orchestrating fan-out/fan-in execution
-for batch inputs.
+The workflow remains deterministic and delegates all non-deterministic HTTP
+I/O to the activity ``call_serve_inference``. It demonstrates a classic
+fan-out/fan-in pattern by executing one activity per input item and gathering
+results in order.
 """
 
 from __future__ import annotations
@@ -10,16 +11,19 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 from temporalio import workflow
-from src.workflows.serve_inference.serve_inference_activities import (
-    call_serve_inference,
-)
-from src.workflows.serve_inference.types import (
-    BatchInferenceInput,
-    BatchInferenceItem,
-    BatchInferenceOutput,
-    InferenceRequest,
-    InferenceResponse,
-)
+
+# Guard imports that are not required for determinism so Temporal can safely replay
+with workflow.unsafe.imports_passed_through():
+    from src.workflows.serve_inference.serve_inference_activities import (
+        call_serve_inference,
+    )
+    from src.workflows.serve_inference.types import (
+        BatchInferenceInput,
+        BatchInferenceItem,
+        BatchInferenceOutput,
+        InferenceRequest,
+        InferenceResponse,
+    )
 
 @workflow.defn
 class ServeBatchInferenceWorkflow:
@@ -27,7 +31,13 @@ class ServeBatchInferenceWorkflow:
 
     @workflow.run
     async def run(self, input: BatchInferenceInput) -> BatchInferenceOutput:  # noqa: A002
-        """Run the batch inference orchestration."""
+        """Run the batch inference orchestration.
+
+        The workflow triggers one activity per input item concurrently and
+        aggregates responses. Per-request timeouts are enforced at the activity
+        layer; consider adding a workflow-level retry policy depending on your
+        error semantics (e.g., retry on 429/503 only).
+        """
         workflow.logger.info(
             "Starting batch inference for %d item(s) via %s%s",
             len(input.items),
@@ -52,6 +62,5 @@ class ServeBatchInferenceWorkflow:
         tasks = [one_call(item) for item in input.items]
         results: list[InferenceResponse] = await asyncio.gather(*tasks)
         return BatchInferenceOutput(results=results)
-
 
 

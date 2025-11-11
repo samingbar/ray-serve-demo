@@ -23,7 +23,13 @@ except ModuleNotFoundError:  # pragma: no cover - convenience for script runs
 
 
 async def main() -> None: 
-    """Trigger a basic inference workflow"""
+    """Trigger a basic inference workflow.
+
+    Steps
+    1. Read sample inputs (JSON list of payloads) from the local file.
+    2. Connect to Temporal using the Pydantic data converter.
+    3. Execute the workflow against ``serve-inference-task-queue``.
+    """
     json_path = Path(__file__).with_name("text_pairs_500.json")
     with json_path.open("r") as file:
         tests = json.load(file)
@@ -46,3 +52,9 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+"""Simple CLI to trigger the ServeBatchInferenceWorkflow with sample inputs.
+
+This script loads a small set of test payloads from ``text_pairs_500.json`` and
+submits them as a batch to the Temporal workflow. It can be executed either as
+``python -m src.app.inference_starter`` or directly via file path.
+"""

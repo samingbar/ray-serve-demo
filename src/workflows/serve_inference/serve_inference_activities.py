@@ -1,8 +1,8 @@
 """Activities for invoking Ray Serve inference endpoints via HTTP.
 
-This module defines Pydantic models and an activity that sends
-inference requests to a Ray Serve deployment over HTTP and returns
-structured results.
+This module defines an activity, ``call_serve_inference``, which performs
+non-deterministic network I/O against a Ray Serve deployment. Workflows
+should call this activity and remain deterministic.
 """
 
 from __future__ import annotations
@@ -18,10 +18,17 @@ from src.workflows.serve_inference.types import (
 )
 
 async def _post_json(url: str, json_payload: dict[str, Any], timeout: float) -> tuple[int, Any]:
-    """Helper to POST JSON and parse JSON response.
+    """POST JSON to ``url`` and parse a JSON response when possible.
 
-    Returns an (status_code, json_data_or_text) tuple. This function is kept
-    separate to simplify mocking in tests.
+    Parameters
+    - url: Fully qualified endpoint URL (e.g., http://localhost:8000/inference)
+    - json_payload: JSON-serializable request body
+    - timeout: Total timeout for the HTTP request in seconds
+
+    Returns
+    A tuple of ``(status_code, data)`` where ``data`` is the parsed JSON body
+    when available, otherwise the raw response text. Kept separate for simpler
+    monkeypatching in tests.
     """
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=json_payload, timeout=timeout) as resp:
@@ -35,11 +42,10 @@ async def _post_json(url: str, json_payload: dict[str, Any], timeout: float) -> 
 
 @activity.defn
 async def call_serve_inference(request: InferenceRequest) -> InferenceResponse:
-    """Activity that invokes a Ray Serve endpoint over HTTP.
+    """Invoke a Ray Serve endpoint over HTTP and return a structured result.
 
-    This activity performs the non-deterministic network I/O, so it should be
-    invoked from workflows using `workflow.execute_activity` with appropriate
-    timeouts and retry policies.
+    The activity centralizes non-deterministic I/O. Call from a workflow with
+    explicit timeouts and a retry policy, as appropriate to your SLOs.
     """
     full_url = f"{str(request.endpoint_url).rstrip('/')}{request.route}"
     activity.logger.info("Calling Ray Serve at %s", full_url)
@@ -57,3 +63,5 @@ async def call_serve_inference(request: InferenceRequest) -> InferenceResponse:
     except Exception as exc:  # noqa: BLE001
         activity.logger.exception("Ray Serve inference call failed: %s", exc)
         return InferenceResponse(status_code=599, error=str(exc))
+
+__all__ = ["call_serve_inference"]

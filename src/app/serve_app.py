@@ -1,12 +1,21 @@
+"""Minimal Ray Serve app for testing Temporal integration.
+
+This app exposes a simple echo model at ``/inference`` and enables basic
+autoscaling. It is intentionally lightweight so you can replace ``EchoModel``
+with your real model while reusing the Serve configuration skeleton.
+"""
+
 from __future__ import annotations
+
 import asyncio
 import signal
 import sys
+
 import ray
 from ray import serve
 from starlette.requests import Request
 
-#Basic Ray-Managed Inference Autoscaling
+# Basic Ray-managed inference autoscaling
 @serve.deployment(
     autoscaling_config={
         "min_replicas": 1,
@@ -16,15 +25,22 @@ from starlette.requests import Request
     },
 )
 
-#Defines a basic echo model, which is a testing tool for reflecting part of the payload back to the user. 
 class EchoModel:
+    """Echo the JSON payload to simulate an inference response."""
+
     async def __call__(self, request: Request):
         data = await request.json()
         return {"prediction": data}
 
 
-#Main Application Function
+# Main Application Function
 async def main():
+    """Initialize Ray + Serve, deploy the model, and wait for shutdown.
+
+    The deployment is bound to the route prefix ``/inference``. Shutdown is
+    handled gracefully on SIGINT/SIGTERM.
+    """
+
     ray.init()
     serve.start(detached=False)
 

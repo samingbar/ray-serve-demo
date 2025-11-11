@@ -1,4 +1,9 @@
-"""Worker for the Ray Serve batch inference workflow."""
+"""Worker for the Ray Serve batch inference workflow.
+
+This worker registers the workflow and activity with the Temporal Server and
+executes tasks from the ``serve-inference-task-queue``. Run it alongside a
+Temporal dev server and a Ray Serve deployment.
+"""
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -12,7 +17,11 @@ from src.workflows.serve_inference.serve_inference_workflow import ServeBatchInf
 
 
 async def main() -> None:
-    """Start a worker that runs the Serve inference workflow and activities."""
+    """Start a worker that runs the Serve inference workflow and activities.
+
+    The worker uses Pydantic data conversion for seamless model (de-)serialization
+    between clients, workflows, and activities.
+    """
     client = await Client.connect("localhost:7233", data_converter=pydantic_data_converter)
     task_queue = "serve-inference-task-queue"
     worker = Worker(
@@ -27,4 +36,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-
