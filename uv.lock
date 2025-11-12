@@ -1937,7 +1937,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115" },
     { name = "pydantic", specifier = "==2.12.4" },
     { name = "ray", extras = ["serve"], specifier = "==2.51.1" },
-    { name = "starlette", specifier = "<0.50" },
+    { name = "starlette", specifier = "<0.51" },
     { name = "temporalio", specifier = "==1.18.2" },
 ]
 
