@@ -10,7 +10,7 @@ dependencies = [
     "pydantic==2.12.4",
     "ray[serve]==2.51.1",
     "fastapi[standard]>=0.115",
-    "starlette<0.50",
+    "starlette<0.51",
 ]
 
 [dependency-groups]
