@@ -8,7 +8,7 @@ dependencies = [
     "temporalio==1.18.2",
     "aiohttp==3.13.2",
     "pydantic==2.12.4",
-    "ray[serve]==2.51.1",
+    "ray[serve]==2.52.0",
     "fastapi[standard]>=0.115",
     "starlette<0.50",
 ]
